@@ -1,0 +1,7 @@
+{
+  "name": "Carmo+ Ultra",
+  "description": "Aplicativo devocional para o Grupo Nossa Senhora do Carmo com gestão de reuniões, liturgia, músicas e membros.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
