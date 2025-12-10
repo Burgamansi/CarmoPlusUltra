@@ -1,5 +1,5 @@
 
-import { db } from './firebaseConfig';
+import { db } from './firebase';
 import { collection, getDocs, addDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { Member, Meeting, Song, PrayerRequest, DailyLiturgy, MediaItem, Feedback } from '../types';
 
