@@ -3,6 +3,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/Layout';
+import { InstallPWA } from './components/InstallPWA';
 import { Home } from './pages/Home';
 import { Meetings } from './pages/Meetings';
 import { Songs } from './pages/Songs';
@@ -17,11 +18,13 @@ import { Devotional } from './pages/Devotional';
 import { About } from './pages/About';
 import { Admin } from './pages/Admin';
 import { MediaPage } from './pages/MediaPage';
+import { Login } from './pages/Login';
 
 const App: React.FC = () => {
   return (
     <AppProvider>
       <Router>
+        <InstallPWA />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -38,6 +41,7 @@ const App: React.FC = () => {
             <Route path="/devotional" element={<Devotional />} />
             <Route path="/about" element={<About />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/login" element={<Login />} />
           </Routes>
         </Layout>
       </Router>

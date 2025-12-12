@@ -1,50 +1,61 @@
+import React, { useEffect, useState } from "react";
 
-import React, { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
-
-export const InstallPWA: React.FC = () => {
+export function InstallPWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const handler = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
+    const handler = (e: any) => {
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
+      setVisible(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener("beforeinstallprompt", handler);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener("beforeinstallprompt", handler);
     };
   }, []);
 
-  const handleInstallClick = async () => {
+  const installApp = async () => {
     if (!deferredPrompt) return;
 
-    // Show the install prompt
     deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
 
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-      setDeferredPrompt(null);
-    }
+    setDeferredPrompt(null);
+    setVisible(false);
   };
 
-  if (!deferredPrompt) return null;
+  if (!visible) return null;
 
   return (
-    <button
-      onClick={handleInstallClick}
-      className="bg-carmel-gold text-carmel-brown hover:bg-white transition-colors font-bold text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md active:scale-95 animate-fade-in"
-      aria-label="Instalar App"
+    <div
+      style={{
+        position: "fixed",
+        bottom: 20,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 9999,
+      }}
     >
-      <Download size={14} strokeWidth={2.5} />
-      <span>Instalar App</span>
-    </button>
+      <button
+        onClick={installApp}
+        style={{
+          background: "#5a3e2b",
+          color: "#fff",
+          border: "none",
+          borderRadius: 24,
+          padding: "12px 20px",
+          fontSize: 14,
+          fontWeight: 600,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+          cursor: "pointer",
+        }}
+      >
+        📲 Baixar App Carmo+
+      </button>
+    </div>
   );
-};
+}

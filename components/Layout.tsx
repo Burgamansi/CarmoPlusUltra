@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, Home, Users, Music, Calendar, MapPin, Heart, BookOpen, Image, Info, Settings, MessageCircle, Youtube } from 'lucide-react';
-import { InstallPWA } from './InstallPWA';
+
 
 const NAV_ITEMS = [
   { path: '/', label: 'Início', icon: Home },
@@ -35,13 +35,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   // Removing '/playlist' from main nav visualization to keep it cleaner if it wasn't requested explicitly in menu list, 
   // but User said "Add this new page to the menu...".
   // The original NAV_ITEMS in file content didn't have Playlist, so I'll stick to adding Media.
-  
+
   const DISPLAY_NAV_ITEMS = NAV_ITEMS.filter(item => item.path !== '/playlist');
 
   return (
     <div className="min-h-screen flex flex-col bg-carmel-beige text-carmel-brown relative">
       {/* Devotional Background Image */}
-      <div 
+      <div
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
           backgroundImage: "url('/assets/nossa_senhora_carmo.jpg')",
@@ -61,7 +61,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <h1 className="font-serif font-bold text-lg">Carmo+ Ultra</h1>
           </div>
           <div className="flex items-center gap-3">
-            <InstallPWA />
+
             <button onClick={() => setIsMenuOpen(true)} className="p-2">
               <Menu />
             </button>
@@ -84,11 +84,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <button
                   key={item.path}
                   onClick={() => handleNav(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-sans font-bold transition-colors ${
-                    location.pathname === item.path 
-                      ? 'bg-carmel-brown text-carmel-beige' 
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-sans font-bold transition-colors ${location.pathname === item.path
+                      ? 'bg-carmel-brown text-carmel-beige'
                       : 'text-carmel-brown hover:bg-carmel-brown/10'
-                  }`}
+                    }`}
                 >
                   <item.icon size={20} />
                   {item.label}
