@@ -1,13 +1,31 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Music, Heart, ArrowRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Card, ButtonPrimary } from '../components/UI';
+import SaveButton from '../components/SaveButton';
+import { loadJSON, saveJSON } from '../services/storage';
+
+const STORAGE_KEY = "carmo_ultra_home_state";
+
+type HomeState = {
+  notes: string;
+};
 
 export const Home = () => {
   const navigate = useNavigate();
   const { meetings } = useApp();
+  const [data, setData] = useState<HomeState>({ notes: "" });
+
+  useEffect(() => {
+    const saved = loadJSON<HomeState>(STORAGE_KEY, { notes: "" });
+    setData(saved);
+  }, []);
+
+  const handleSave = () => {
+    saveJSON(STORAGE_KEY, data);
+  };
 
   // Find next meeting (closest future date)
   const nextMeeting = meetings
@@ -17,7 +35,7 @@ export const Home = () => {
   return (
     <div className="space-y-6">
       {/* Devotional Banner */}
-      <div 
+      <div
         className="relative rounded-2xl overflow-hidden shadow-xl h-48 bg-carmel-brown flex items-center justify-center text-center"
         style={{
           backgroundImage: "url('/assets/download.jpeg')",
@@ -39,10 +57,10 @@ export const Home = () => {
         <div className="flex items-center justify-between mb-2 px-1">
           <h3 className="font-serif font-bold text-carmel-brown">Próxima Reunião</h3>
           <button onClick={() => navigate('/meetings')} className="text-xs font-bold text-carmel-brown/70 flex items-center">
-            VER TODAS <ArrowRight size={12} className="ml-1"/>
+            VER TODAS <ArrowRight size={12} className="ml-1" />
           </button>
         </div>
-        
+
         {nextMeeting ? (
           <Card className="bg-gradient-to-br from-white to-carmel-beige border-l-4 border-l-carmel-brown" onClick={() => navigate(`/meetings`)}>
             <div className="flex items-start justify-between">
@@ -84,7 +102,7 @@ export const Home = () => {
           </div>
           <span className="font-bold text-sm text-carmel-brown">Orações</span>
         </button>
-        
+
         <button onClick={() => navigate('/liturgy')} className="bg-white p-4 rounded-xl shadow-md flex flex-col items-center justify-center gap-2 border border-transparent hover:border-carmel-gold transition-colors">
           <div className="w-10 h-10 rounded-full bg-carmel-blue flex items-center justify-center text-carmel-brown">
             <Calendar size={20} />
@@ -99,11 +117,25 @@ export const Home = () => {
           <span className="font-bold text-sm text-carmel-brown">Devocional</span>
         </button>
       </div>
-      
+
       <div className="pt-4">
-          <ButtonPrimary className="w-full" onClick={() => navigate('/feedback')}>
-             Enviar Feedback do Encontro
-          </ButtonPrimary>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <h2 className="font-serif font-bold text-lg text-carmel-brown">Minhas Anotações</h2>
+          <SaveButton onSave={handleSave} />
+        </div>
+
+        <textarea
+          value={data.notes}
+          onChange={(e) => setData({ ...data, notes: e.target.value })}
+          placeholder="Digite aqui suas anotações pessoais..."
+          className="w-full p-4 rounded-xl border border-carmel-brown/20 focus:border-carmel-gold focus:ring-1 focus:ring-carmel-gold outline-none bg-white text-carmel-brown min-h-[120px]"
+        />
+      </div>
+
+      <div className="pt-4">
+        <ButtonPrimary className="w-full" onClick={() => navigate('/feedback')}>
+          Enviar Feedback do Encontro
+        </ButtonPrimary>
       </div>
     </div>
   );
