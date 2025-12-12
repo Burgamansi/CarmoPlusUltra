@@ -7,7 +7,7 @@ import { Card, ButtonPrimary } from '../components/UI';
 import SaveButton from '../components/SaveButton';
 import { loadJSON, saveJSON } from '../services/storage';
 
-const STORAGE_KEY = "carmo_ultra_home_state";
+const STORAGE_KEY = "carmo_membro";
 
 type HomeState = {
   notes: string;
@@ -16,15 +16,18 @@ type HomeState = {
 export const Home = () => {
   const navigate = useNavigate();
   const { meetings } = useApp();
-  const [data, setData] = useState<HomeState>({ notes: "" });
+  const [membro, setMembro] = useState<HomeState>({ notes: "" });
 
   useEffect(() => {
     const saved = loadJSON<HomeState>(STORAGE_KEY, { notes: "" });
-    setData(saved);
+    setMembro(saved);
   }, []);
 
-  const handleSave = () => {
-    saveJSON(STORAGE_KEY, data);
+  const handleSave = async () => {
+    alert("ENTROU NO SAVE");
+    console.log("SALVAR CLICADO", membro); // debug
+
+    saveJSON("carmo_membro", membro);
   };
 
   // Find next meeting (closest future date)
@@ -121,12 +124,17 @@ export const Home = () => {
       <div className="pt-4">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <h2 className="font-serif font-bold text-lg text-carmel-brown">Minhas Anotações</h2>
-          <SaveButton onSave={handleSave} />
+          <SaveButton
+            label="Salvar Membro"
+            onSave={handleSave}
+            confirmText="Deseja salvar este cadastro?"
+            successText="Cadastro salvo com sucesso ✅"
+          />
         </div>
 
         <textarea
-          value={data.notes}
-          onChange={(e) => setData({ ...data, notes: e.target.value })}
+          value={membro.notes}
+          onChange={(e) => setMembro({ ...membro, notes: e.target.value })}
           placeholder="Digite aqui suas anotações pessoais..."
           className="w-full p-4 rounded-xl border border-carmel-brown/20 focus:border-carmel-gold focus:ring-1 focus:ring-carmel-gold outline-none bg-white text-carmel-brown min-h-[120px]"
         />
