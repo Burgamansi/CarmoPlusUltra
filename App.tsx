@@ -3,7 +3,6 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/Layout';
-import { InstallPWA } from './components/InstallPWA';
 import { Home } from './pages/Home';
 import { Meetings } from './pages/Meetings';
 import { Songs } from './pages/Songs';
@@ -24,7 +23,6 @@ const App: React.FC = () => {
   return (
     <AppProvider>
       <Router>
-        <InstallPWA />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />

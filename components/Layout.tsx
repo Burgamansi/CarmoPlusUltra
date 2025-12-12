@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, Home, Users, Music, Calendar, MapPin, Heart, BookOpen, Image, Info, Settings, MessageCircle, Youtube } from 'lucide-react';
+import InstallAppGuide from './InstallAppGuide';
 
 
 const NAV_ITEMS = [
@@ -85,8 +86,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   key={item.path}
                   onClick={() => handleNav(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-sans font-bold transition-colors ${location.pathname === item.path
-                      ? 'bg-carmel-brown text-carmel-beige'
-                      : 'text-carmel-brown hover:bg-carmel-brown/10'
+                    ? 'bg-carmel-brown text-carmel-beige'
+                    : 'text-carmel-brown hover:bg-carmel-brown/10'
                     }`}
                 >
                   <item.icon size={20} />
@@ -109,6 +110,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           Developed by Rogério Marcos
         </p>
       </footer>
-    </div>
+      <InstallAppGuide />
+    </div >
   );
 };
