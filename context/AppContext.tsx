@@ -59,6 +59,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       // Early load from LocalStorage for Member persistence check
       const localMembers = getMembersLS();
       if (localMembers && localMembers.length > 0) {
+        console.log("[AppContext] loaded members from LS:", localMembers.length);
         setMembers(localMembers);
       }
 

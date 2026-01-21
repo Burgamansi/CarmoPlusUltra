@@ -459,6 +459,12 @@ export const Members = () => {
           </div>
         </div>
       )}
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg z-[60] flex items-center gap-2 animate-fade-in-up">
+          <span className="text-sm font-bold">{toast.msg}</span>
+        </div>
+      )}
     </div>
   );
 };
