@@ -110,10 +110,23 @@ export const Members = () => {
     return isValid;
   };
 
+  // Toast State
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (type: 'success' | 'warn', msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
+  };
+
   const handleSave = async () => {
     // Basic required fields check
     if (!formData.husband_name || !formData.wife_name) {
-      setErrors({ ...errors, general: 'Preencha os nomes do casal.' });
+      alert('Preencha os nomes do casal.');
+      return;
+    }
+
+    if (!validateForm()) {
+      alert('Verifique os erros no formulário.');
       return;
     }
 
@@ -177,7 +190,7 @@ export const Members = () => {
 
       console.log("LS AFTER SAVE:", getMembersLS()); // Debug log
 
-      alert('Dados salvos com sucesso!');
+      alert('✅ Contato salvo');
       setIsModalOpen(false);
       setFormData({
         husband_name: '',
@@ -460,9 +473,23 @@ export const Members = () => {
         </div>
       )}
       {/* Toast Notification */}
-      {toast && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg z-[60] flex items-center gap-2 animate-fade-in-up">
-          <span className="text-sm font-bold">{toast.msg}</span>
+      {toastMsg && (
+        <div style={{
+          position: "fixed",
+          bottom: 90,
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "10px 14px",
+          borderRadius: 14,
+          border: "1px solid rgba(0,0,0,0.15)",
+          background: "rgba(0,0,0,0.75)",
+          color: "#fff",
+          fontWeight: 800,
+          zIndex: 9999,
+          maxWidth: "92%",
+          textAlign: "center"
+        }}>
+          {toastMsg}
         </div>
       )}
     </div>
