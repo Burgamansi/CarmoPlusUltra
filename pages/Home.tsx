@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Music, Heart, ArrowRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Card, ButtonPrimary } from '../components/UI';
-import SaveButton from '../components/SaveButton';
+
 import { loadJSON, saveJSON, STORAGE_KEYS } from '../services/storage';
 
 const STORAGE_KEY = STORAGE_KEYS.HOME_NOTES;
@@ -23,12 +23,7 @@ export const Home = () => {
     setMembro(saved);
   }, []);
 
-  const handleSave = async () => {
-    alert("ENTROU NO SAVE");
-    console.log("SALVAR CLICADO", membro); // debug
 
-    saveJSON(STORAGE_KEY, membro);
-  };
 
   // Find next meeting (closest future date)
   const nextMeeting = meetings
@@ -124,12 +119,7 @@ export const Home = () => {
       <div className="pt-4">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <h2 className="font-serif font-bold text-lg text-carmel-brown">Minhas Anotações</h2>
-          <SaveButton
-            label="Salvar Membro"
-            onSave={handleSave}
-            confirmText="Deseja salvar este cadastro?"
-            successText="Cadastro salvo com sucesso ✅"
-          />
+
         </div>
 
         <textarea

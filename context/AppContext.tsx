@@ -19,6 +19,8 @@ interface AppContextType {
   addMeeting: (meeting: Meeting) => void;
   updateMeeting: (meeting: Meeting) => void;
   addMember: (member: Member) => void;
+  updateMember: (member: Member) => void;
+  deleteMember: (id: string) => void;
   addSong: (song: Song) => void;
   addFeedback: (feedback: Feedback) => void;
   addMedia: (media: MediaItem) => void;
@@ -123,6 +125,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addMember = (member: Member) => {
     setMembers([...members, member]);
   };
+
+  const updateMember = (updatedMember: Member) => {
+    setMembers(prev => prev.map(m => m.member_id === updatedMember.member_id ? updatedMember : m));
+  };
+
+  const deleteMember = (id: string) => {
+    setMembers(prev => prev.filter(m => m.member_id !== id));
+  };
+
 
   const addSong = (song: Song) => {
     setSongs([...songs, song]);
