@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Member, Meeting, Song, PrayerRequest, DailyLiturgy, MediaItem, Feedback } from '../types';
 import * as FirestoreService from '../services/firestoreService';
+import { getMembersLS } from '../services/storage';
 
 interface AppContextType {
   members: Member[];
@@ -11,7 +12,7 @@ interface AppContextType {
   liturgy: DailyLiturgy;
   media: MediaItem[];
   feedbacks: Feedback[];
-  
+
   // Actions
   addPrayer: (prayer: PrayerRequest) => void;
   likePrayer: (id: string) => void;
@@ -22,7 +23,7 @@ interface AppContextType {
   addFeedback: (feedback: Feedback) => void;
   addMedia: (media: MediaItem) => void;
   updateLiturgy: (liturgy: DailyLiturgy) => void;
-  
+
   // Helpers
   getMeetingById: (id: string) => Meeting | undefined;
   getMemberById: (id: string) => Member | undefined;
@@ -37,20 +38,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [songs, setSongs] = useState<Song[]>([]);
   const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
   const [liturgy, setLiturgy] = useState<DailyLiturgy>({
-      liturgy_id: 'loading',
-      date: new Date().toISOString(),
-      gospel: '',
-      reading1: '',
-      reading2: '',
-      psalm: '',
-      reflection: 'Carregando liturgia...',
-      video_url: ''
+    liturgy_id: 'loading',
+    date: new Date().toISOString(),
+    gospel: '',
+    reading1: '',
+    reading2: '',
+    psalm: '',
+    reflection: 'Carregando liturgia...',
+    video_url: ''
   });
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 
+
+
+  // ...
+
   useEffect(() => {
     const fetchData = async () => {
+      // Early load from LocalStorage for Member persistence check
+      const localMembers = getMembersLS();
+      if (localMembers && localMembers.length > 0) {
+        setMembers(localMembers);
+      }
+
       try {
         const [
           fetchedMembers,
@@ -89,10 +100,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const likePrayer = async (id: string) => {
     const prayer = prayers.find(p => p.prayer_id === id);
     if (!prayer) return;
-    
+
     const newLikes = prayer.likes + 1;
     setPrayers(prev => prev.map(p => p.prayer_id === id ? { ...p, likes: newLikes } : p));
-    
+
     try {
       await FirestoreService.updatePrayerLikes(id, newLikes);
     } catch (e) {

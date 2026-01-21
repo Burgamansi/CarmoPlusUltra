@@ -5,9 +5,9 @@ import { Calendar, Music, Heart, ArrowRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Card, ButtonPrimary } from '../components/UI';
 import SaveButton from '../components/SaveButton';
-import { loadJSON, saveJSON } from '../services/storage';
+import { loadJSON, saveJSON, STORAGE_KEYS } from '../services/storage';
 
-const STORAGE_KEY = "carmo_membro";
+const STORAGE_KEY = STORAGE_KEYS.HOME_NOTES;
 
 type HomeState = {
   notes: string;
@@ -27,7 +27,7 @@ export const Home = () => {
     alert("ENTROU NO SAVE");
     console.log("SALVAR CLICADO", membro); // debug
 
-    saveJSON("carmo_membro", membro);
+    saveJSON(STORAGE_KEY, membro);
   };
 
   // Find next meeting (closest future date)

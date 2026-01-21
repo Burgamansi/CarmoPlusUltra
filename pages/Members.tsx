@@ -4,6 +4,7 @@ import { Search, Phone, MapPin, Calendar, Plus, X, Save, Navigation } from 'luci
 import { useApp, normalizeText } from '../context/AppContext';
 import { Card, SectionTitle, Input, ButtonSecondary, ButtonPrimary } from '../components/UI';
 import { salvarDados } from '../services/firestoreService';
+import { getMembersLS, setMembersLS } from '../services/storage';
 
 interface FormErrors {
   email?: string;
@@ -17,7 +18,7 @@ export const Members = () => {
   const { members, addMember } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  
+
   // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -40,8 +41,8 @@ export const Members = () => {
   const handleCepBlur = async () => {
     const cep = formData.cep.replace(/\D/g, '');
     if (cep.length !== 8) {
-        if(formData.cep) setErrors({...errors, cep: 'CEP deve ter 8 dígitos.'});
-        return;
+      if (formData.cep) setErrors({ ...errors, cep: 'CEP deve ter 8 dígitos.' });
+      return;
     }
 
     try {
@@ -56,13 +57,13 @@ export const Members = () => {
           state: data.uf,
           cep: cep // Keep clean format
         }));
-        setErrors({...errors, cep: undefined});
+        setErrors({ ...errors, cep: undefined });
       } else {
-        setErrors({...errors, cep: 'CEP não encontrado.'});
+        setErrors({ ...errors, cep: 'CEP não encontrado.' });
       }
     } catch (error) {
       console.error("Erro ao buscar CEP", error);
-      setErrors({...errors, cep: 'Erro ao buscar CEP.'});
+      setErrors({ ...errors, cep: 'Erro ao buscar CEP.' });
     }
   };
 
@@ -88,8 +89,8 @@ export const Members = () => {
     // CEP Validation
     const cepClean = formData.cep.replace(/\D/g, '');
     if (!formData.cep || cepClean.length !== 8) {
-       newErrors.cep = 'Por favor, informe um CEP válido.';
-       isValid = false;
+      newErrors.cep = 'Por favor, informe um CEP válido.';
+      isValid = false;
     }
 
     // Birthday Validation
@@ -127,15 +128,15 @@ export const Members = () => {
     const fullAddress = `${formData.address}, ${formData.number}, ${formData.neighborhood}, ${formData.city} - ${formData.state}, Brazil`;
 
     try {
-        const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
-        const geoData = await geoResponse.json();
-        if (geoData && geoData.length > 0) {
-            lat = parseFloat(geoData[0].lat);
-            lng = parseFloat(geoData[0].lon);
-        }
+      const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
+      const geoData = await geoResponse.json();
+      if (geoData && geoData.length > 0) {
+        lat = parseFloat(geoData[0].lat);
+        lng = parseFloat(geoData[0].lon);
+      }
     } catch (e) {
-        console.error("Geocoding error", e);
-        // We continue saving even if geocoding fails, user can update map later (feature to be added)
+      console.error("Geocoding error", e);
+      // We continue saving even if geocoding fails, user can update map later (feature to be added)
     }
 
     const memberData = {
@@ -154,13 +155,27 @@ export const Members = () => {
       geo_lng: lng,
     };
 
+
     try {
+      console.log("PAYLOAD SAVE MEMBER:", memberData); // Debug log
+
       const docRef = await salvarDados('members', memberData);
 
-      addMember({
+      const newMemberWithId = {
         ...memberData,
         member_id: docRef.id
-      });
+      };
+
+      addMember(newMemberWithId);
+
+      // Persist to LocalStorage using the current members list + new member
+      // Note: 'members' from context might be stale in this closure if not careful, 
+      // but since we are just appending, we can use the prop.
+      // However, safest is to use the same logic as addMember does internally or just append to current 'members' var which comes from useApp() context.
+      const updatedMembersList = [...members, newMemberWithId];
+      setMembersLS(updatedMembersList);
+
+      console.log("LS AFTER SAVE:", getMembersLS()); // Debug log
 
       alert('Dados salvos com sucesso!');
       setIsModalOpen(false);
@@ -183,6 +198,7 @@ export const Members = () => {
       console.error('Erro ao salvar:', error);
       alert('Erro ao salvar dados.');
     }
+
   };
 
   const filteredMembers = members.filter(m => {
@@ -194,7 +210,7 @@ export const Members = () => {
     <div className="relative">
       <div className="flex justify-between items-center">
         <SectionTitle>Membros do Grupo</SectionTitle>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-carmel-brown text-white p-2 rounded-full shadow-md active:scale-95 transition-transform"
           title="Adicionar Membro"
@@ -202,10 +218,10 @@ export const Members = () => {
           <Plus size={20} />
         </button>
       </div>
-      
+
       <div className="mb-6 relative">
-        <Input 
-          placeholder="Buscar casal ou bairro..." 
+        <Input
+          placeholder="Buscar casal ou bairro..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -215,7 +231,7 @@ export const Members = () => {
       <div className="space-y-4">
         {filteredMembers.map(member => (
           <Card key={member.member_id} className="transition-all duration-300">
-            <div 
+            <div
               className="flex items-center justify-between cursor-pointer"
               onClick={() => setExpandedId(expandedId === member.member_id ? null : member.member_id)}
             >
@@ -233,7 +249,7 @@ export const Members = () => {
                 </div>
               </div>
               <div className="text-carmel-gold text-xs font-bold">
-                 {member.notes === 'Coordenadores' ? 'COORD' : ''}
+                {member.notes === 'Coordenadores' ? 'COORD' : ''}
               </div>
             </div>
 
@@ -254,13 +270,13 @@ export const Members = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div>
                   <span className="text-xs font-bold text-carmel-gold uppercase">Endereço</span>
                   <p className="text-carmel-brown text-sm">{member.address}</p>
                   {member.city && <p className="text-carmel-brown text-xs">{member.city} - {member.state}</p>}
                 </div>
-                
+
                 {member.email && (
                   <div>
                     <span className="text-xs font-bold text-carmel-gold uppercase">Email</span>
@@ -269,29 +285,29 @@ export const Members = () => {
                 )}
 
                 <div className="flex gap-2 pt-2 flex-wrap">
-                   <ButtonSecondary onClick={(e) => {
-                     e.stopPropagation();
-                     window.open(`https://wa.me/55${member.phone.replace(/\D/g, '')}`, '_blank');
-                   }} className="flex-1 text-xs whitespace-nowrap">
-                     WhatsApp
-                   </ButtonSecondary>
-                   
-                   {member.geo_lat !== 0 && (
-                     <>
-                        <ButtonSecondary onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${member.geo_lat},${member.geo_lng}`, '_blank');
-                        }} className="flex-1 text-xs whitespace-nowrap">
-                          Abrir no Google Maps
-                        </ButtonSecondary>
-                        <ButtonSecondary onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(`https://waze.com/ul?ll=${member.geo_lat},${member.geo_lng}&navigate=yes`, '_blank');
-                        }} className="flex-1 text-xs whitespace-nowrap">
-                          <Navigation size={12} /> Abrir no Waze
-                        </ButtonSecondary>
-                     </>
-                   )}
+                  <ButtonSecondary onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`https://wa.me/55${member.phone.replace(/\D/g, '')}`, '_blank');
+                  }} className="flex-1 text-xs whitespace-nowrap">
+                    WhatsApp
+                  </ButtonSecondary>
+
+                  {member.geo_lat !== 0 && (
+                    <>
+                      <ButtonSecondary onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${member.geo_lat},${member.geo_lng}`, '_blank');
+                      }} className="flex-1 text-xs whitespace-nowrap">
+                        Abrir no Google Maps
+                      </ButtonSecondary>
+                      <ButtonSecondary onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://waze.com/ul?ll=${member.geo_lat},${member.geo_lng}&navigate=yes`, '_blank');
+                      }} className="flex-1 text-xs whitespace-nowrap">
+                        <Navigation size={12} /> Abrir no Waze
+                      </ButtonSecondary>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -314,28 +330,28 @@ export const Members = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs font-bold text-carmel-brown mb-1">Nome Esposo *</label>
-                  <Input 
+                  <Input
                     value={formData.husband_name}
-                    onChange={(e) => setFormData({...formData, husband_name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, husband_name: e.target.value })}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-carmel-brown mb-1">Nome Esposa *</label>
-                  <Input 
+                  <Input
                     value={formData.wife_name}
-                    onChange={(e) => setFormData({...formData, wife_name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, wife_name: e.target.value })}
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-carmel-brown mb-1">CEP *</label>
-                <Input 
+                <Input
                   placeholder="00000-000"
                   value={formData.cep}
                   onChange={(e) => {
-                      setFormData({...formData, cep: e.target.value});
-                      if(errors.cep) setErrors({...errors, cep: undefined});
+                    setFormData({ ...formData, cep: e.target.value });
+                    if (errors.cep) setErrors({ ...errors, cep: undefined });
                   }}
                   onBlur={handleCepBlur}
                   className={errors.cep ? 'border-red-500' : ''}
@@ -344,37 +360,37 @@ export const Members = () => {
               </div>
 
               <div className="grid grid-cols-4 gap-2">
-                  <div className="col-span-3">
-                    <label className="block text-xs font-bold text-carmel-brown mb-1">Endereço</label>
-                    <Input 
-                      value={formData.address}
-                      onChange={(e) => setFormData({...formData, address: e.target.value})}
-                      disabled // Auto-filled from CEP
-                      className="bg-gray-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-carmel-brown mb-1">Número</label>
-                    <Input 
-                      value={formData.number}
-                      onChange={(e) => setFormData({...formData, number: e.target.value})}
-                    />
-                  </div>
+                <div className="col-span-3">
+                  <label className="block text-xs font-bold text-carmel-brown mb-1">Endereço</label>
+                  <Input
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    disabled // Auto-filled from CEP
+                    className="bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-carmel-brown mb-1">Número</label>
+                  <Input
+                    value={formData.number}
+                    onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs font-bold text-carmel-brown mb-1">Bairro</label>
-                  <Input 
+                  <Input
                     value={formData.neighborhood}
-                    onChange={(e) => setFormData({...formData, neighborhood: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
                     disabled
                     className="bg-gray-100"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-carmel-brown mb-1">Cidade - UF</label>
-                  <Input 
+                  <Input
                     value={formData.city ? `${formData.city} - ${formData.state}` : ''}
                     disabled
                     className="bg-gray-100"
@@ -384,12 +400,12 @@ export const Members = () => {
 
               <div>
                 <label className="block text-xs font-bold text-carmel-brown mb-1">Email</label>
-                <Input 
+                <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => {
-                    setFormData({...formData, email: e.target.value});
-                    if (errors.email) setErrors({...errors, email: undefined});
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors({ ...errors, email: undefined });
                   }}
                   className={errors.email ? 'border-red-500' : ''}
                 />
@@ -398,13 +414,13 @@ export const Members = () => {
 
               <div>
                 <label className="block text-xs font-bold text-carmel-brown mb-1">Telefone (DDD + Número)</label>
-                <Input 
+                <Input
                   type="tel"
                   placeholder="(00) 00000-0000"
                   value={formData.phone}
                   onChange={(e) => {
-                    setFormData({...formData, phone: e.target.value});
-                    if (errors.phone) setErrors({...errors, phone: undefined});
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (errors.phone) setErrors({ ...errors, phone: undefined });
                   }}
                   className={errors.phone ? 'border-red-500' : ''}
                 />
@@ -413,12 +429,12 @@ export const Members = () => {
 
               <div>
                 <label className="block text-xs font-bold text-carmel-brown mb-1">Data de Casamento / Aniversário</label>
-                <Input 
+                <Input
                   type="date"
                   value={formData.birthday}
                   onChange={(e) => {
-                    setFormData({...formData, birthday: e.target.value});
-                    if (errors.birthday) setErrors({...errors, birthday: undefined});
+                    setFormData({ ...formData, birthday: e.target.value });
+                    if (errors.birthday) setErrors({ ...errors, birthday: undefined });
                   }}
                   className={errors.birthday ? 'border-red-500' : ''}
                 />
@@ -426,12 +442,12 @@ export const Members = () => {
               </div>
 
               <div>
-                   <label className="block text-xs font-bold text-carmel-brown mb-1">Observações</label>
-                   <Input 
-                     value={formData.notes}
-                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                     placeholder="Ex: Coordenadores"
-                   />
+                <label className="block text-xs font-bold text-carmel-brown mb-1">Observações</label>
+                <Input
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Ex: Coordenadores"
+                />
               </div>
 
               {errors.general && <p className="text-red-500 text-center text-sm font-bold">{errors.general}</p>}
