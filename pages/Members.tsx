@@ -121,12 +121,12 @@ export const Members = () => {
   const handleSave = async () => {
     // Basic required fields check
     if (!formData.husband_name || !formData.wife_name) {
-      alert('Preencha os nomes do casal.');
+      showToast('warn', 'Preencha os nomes do casal.');
       return;
     }
 
     if (!validateForm()) {
-      alert('Verifique os erros no formulário.');
+      showToast('warn', 'Verifique os erros no formulário.');
       return;
     }
 
@@ -190,7 +190,7 @@ export const Members = () => {
 
       console.log("LS AFTER SAVE:", getMembersLS()); // Debug log
 
-      alert('✅ Contato salvo');
+      showToast('success', '✅ Contato salvo');
       setIsModalOpen(false);
       setFormData({
         husband_name: '',
@@ -209,7 +209,7 @@ export const Members = () => {
       setErrors({});
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      alert('Erro ao salvar dados.');
+      showToast('warn', 'Erro ao salvar dados.');
     }
 
   };
