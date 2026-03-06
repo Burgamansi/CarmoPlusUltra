@@ -16,7 +16,6 @@ interface FormErrors {
 export const Members: React.FC = () => {
   const { members, addMember, updateMember, deleteMember } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Modal & Form State
@@ -28,7 +27,6 @@ export const Members: React.FC = () => {
     phone: '',
     cep: '',
     address: '',
-    number: '',
     neighborhood: '',
     city: '',
     state: '',
@@ -38,11 +36,6 @@ export const Members: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Placeholder helpers
-  const handleCepBlur = () => {
-    // CEP autofill would run here
-  };
 
   const validateForm = (): boolean => {
     return true;
@@ -74,7 +67,6 @@ export const Members: React.FC = () => {
       phone: member.phone || '',
       cep: member.cep || '',
       address: member.address || '',
-      number: '',
       neighborhood: member.neighborhood || '',
       city: member.city || '',
       state: member.state || '',
@@ -93,7 +85,6 @@ export const Members: React.FC = () => {
       phone: '',
       cep: '',
       address: '',
-      number: '',
       neighborhood: '',
       city: '',
       state: '',
@@ -120,7 +111,7 @@ export const Members: React.FC = () => {
 
     let lat = 0;
     let lng = 0;
-    const fullAddress = `${formData.address}, ${formData.number}, ${formData.neighborhood}, ${formData.city} - ${formData.state}, Brazil`;
+    const fullAddress = `${formData.address}, ${formData.neighborhood}, ${formData.city} - ${formData.state}, Brazil`;
 
     try {
       const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
@@ -139,7 +130,7 @@ export const Members: React.FC = () => {
       email: formData.email,
       phone: formData.phone,
       cep: formData.cep,
-      address: `${formData.address}${formData.number ? `, ${formData.number}` : ''}`,
+      address: formData.address,
       neighborhood: formData.neighborhood,
       city: formData.city,
       state: formData.state,
@@ -178,7 +169,6 @@ export const Members: React.FC = () => {
         phone: '',
         cep: '',
         address: '',
-        number: '',
         neighborhood: '',
         city: '',
         state: '',
@@ -227,105 +217,144 @@ export const Members: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {filteredMembers.map(member => (
-          <Card key={member.member_id} className="transition-all duration-300">
-            <div
-              className="flex items-center justify-between cursor-pointer"
-              onClick={() => setExpandedId(expandedId === member.member_id ? null : member.member_id)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-carmel-brown text-carmel-beige flex items-center justify-center font-serif font-bold text-sm border-2 border-carmel-gold">
-                  {member.husband_name.charAt(0)}{member.wife_name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="font-bold text-carmel-brown leading-tight">
-                    {member.husband_name} & {member.wife_name}
-                  </h3>
-                  <p className="text-xs text-carmel-brown/60 flex items-center gap-1">
-                    <MapPin size={10} /> {member.neighborhood}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={(e) => handleEdit(member, e)}
-                  className="p-1 text-carmel-brown/60 hover:text-carmel-brown active:scale-95 transition-colors"
-                  title="Editar"
-                >
-                  <Pencil size={16} />
-                </button>
-                <button
-                  onClick={(e) => handleDelete(member.member_id, e)}
-                  className="p-1 text-red-400 hover:text-red-600 active:scale-95 transition-colors"
-                  title="Excluir"
-                >
-                  <Trash size={16} />
-                </button>
-                <div className="text-carmel-gold text-xs font-bold">
-                  {member.notes === 'Coordenadores' ? 'COORD' : ''}
-                </div>
-              </div>
-            </div>
+        {filteredMembers.map(member => {
+          const fullAddress = `${member.address}, ${member.neighborhood}, ${member.city} - ${member.state}, Brazil`;
+          const encodedAddress = encodeURIComponent(fullAddress);
+          const isAddressComplete = member.address && member.neighborhood && member.city && member.state;
 
-            {expandedId === member.member_id && (
-              <div className="mt-4 pt-4 border-t border-carmel-brown/10 space-y-3 animate-fade-in">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+          return (
+            <Card key={member.member_id} className="transition-all duration-300 hover:shadow-lg">
+              <div className="p-4">
+                {/* Header with names and actions */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-carmel-brown text-carmel-beige flex items-center justify-center font-serif font-bold text-sm border-2 border-carmel-gold">
+                      {member.husband_name.charAt(0)}{member.wife_name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-carmel-brown leading-tight">
+                        {member.husband_name} & {member.wife_name}
+                      </h3>
+                      {member.notes && (
+                        <p className="text-xs text-carmel-gold font-semibold uppercase">{member.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => handleEdit(member, e)}
+                      className="p-2 text-carmel-brown/60 hover:text-carmel-brown hover:bg-carmel-brown/10 rounded-full transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(member.member_id, e)}
+                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Member Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Nome Esposo</span>
+                      <p className="text-carmel-brown font-medium">{member.husband_name}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Nome Esposa</span>
+                      <p className="text-carmel-brown font-medium">{member.wife_name}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">CEP</span>
+                      <p className="text-carmel-brown">{member.cep}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Endereço Completo</span>
+                      <p className="text-carmel-brown text-sm">{member.address}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Bairro</span>
+                      <p className="text-carmel-brown">{member.neighborhood}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Cidade / UF</span>
+                      <p className="text-carmel-brown">{member.city} - {member.state}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Email</span>
+                      <p className="text-carmel-brown text-sm">{member.email || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Telefone</span>
+                      <p className="text-carmel-brown flex items-center gap-1">
+                        <Phone size={14} /> {member.phone}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom section with date and notes */}
+                <div className="border-t border-carmel-brown/10 pt-4 space-y-3">
                   <div>
-                    <span className="text-xs font-bold text-carmel-gold uppercase">Telefone</span>
+                    <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Data de Casamento / Aniversário</span>
                     <p className="text-carmel-brown flex items-center gap-1">
-                      <Phone size={12} /> {member.phone}
+                      <Calendar size={14} />
+                      {member.birthday ? new Date(member.birthday).toLocaleDateString('pt-BR') : '-'}
                     </p>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-carmel-gold uppercase">Aniversário</span>
-                    <p className="text-carmel-brown flex items-center gap-1">
-                      <Calendar size={12} /> {member.birthday ? new Date(member.birthday).toLocaleDateString('pt-BR') : '-'}
-                    </p>
-                  </div>
+                  {member.notes && member.notes !== 'Coordenadores' && (
+                    <div>
+                      <span className="text-xs font-bold text-carmel-gold uppercase block mb-1">Observações</span>
+                      <p className="text-carmel-brown text-sm">{member.notes}</p>
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <span className="text-xs font-bold text-carmel-gold uppercase">Endereço</span>
-                  <p className="text-carmel-brown text-sm">{member.address}</p>
-                  {member.city && <p className="text-carmel-brown text-xs">{member.city} - {member.state}</p>}
-                </div>
-
-                {member.email && (
-                  <div>
-                    <span className="text-xs font-bold text-carmel-gold uppercase">Email</span>
-                    <p className="text-carmel-brown text-xs">{member.email}</p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-2 flex-wrap">
-                  <ButtonSecondary onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(`https://wa.me/55${member.phone.replace(/\D/g, '')}`, '_blank');
-                  }} className="flex-1 text-xs whitespace-nowrap">
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4 border-t border-carmel-brown/10 flex-wrap">
+                  <ButtonSecondary
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://wa.me/55${member.phone.replace(/\D/g, '')}`, '_blank');
+                    }}
+                    className="flex-1 text-xs"
+                  >
                     WhatsApp
                   </ButtonSecondary>
 
-                  {member.geo_lat !== 0 && (
-                    <>
-                      <ButtonSecondary onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${member.geo_lat},${member.geo_lng}`, '_blank');
-                      }} className="flex-1 text-xs whitespace-nowrap">
-                        Abrir no Google Maps
-                      </ButtonSecondary>
-                      <ButtonSecondary onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(`https://waze.com/ul?ll=${member.geo_lat},${member.geo_lng}&navigate=yes`, '_blank');
-                      }} className="flex-1 text-xs whitespace-nowrap">
-                        <Navigation size={12} /> Abrir no Waze
-                      </ButtonSecondary>
-                    </>
-                  )}
+                  <ButtonSecondary
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+                    }}
+                    className="flex-1 text-xs"
+                    disabled={!isAddressComplete}
+                  >
+                    Google Maps
+                  </ButtonSecondary>
+
+                  <ButtonSecondary
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://waze.com/ul?q=${encodedAddress}&navigate=yes`, '_blank');
+                    }}
+                    className="flex-1 text-xs"
+                    disabled={!isAddressComplete}
+                  >
+                    <Navigation size={14} /> Waze
+                  </ButtonSecondary>
                 </div>
               </div>
-            )}
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {isModalOpen && (
@@ -359,7 +388,7 @@ export const Members: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-carmel-brown mb-1">CEP *</label>
+                <label className="block text-xs font-bold text-carmel-brown mb-1">CEP</label>
                 <Input
                   placeholder="00000-000"
                   value={formData.cep}
@@ -367,29 +396,18 @@ export const Members: React.FC = () => {
                     setFormData({ ...formData, cep: e.target.value });
                     if (errors.cep) setErrors({ ...errors, cep: undefined });
                   }}
-                  onBlur={handleCepBlur}
                   className={errors.cep ? 'border-red-500' : ''}
                 />
                 {errors.cep && <span className="text-red-500 text-xs mt-1 block">{errors.cep}</span>}
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
-                <div className="col-span-3">
-                  <label className="block text-xs font-bold text-carmel-brown mb-1">Endereço</label>
-                  <Input
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    disabled
-                    className="bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-carmel-brown mb-1">Número</label>
-                  <Input
-                    value={formData.number}
-                    onChange={(e) => setFormData({ ...formData, number: e.target.value })}
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-carmel-brown mb-1">Endereço Completo</label>
+                <Input
+                  placeholder="Rua, número, complemento"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -398,17 +416,24 @@ export const Members: React.FC = () => {
                   <Input
                     value={formData.neighborhood}
                     onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
-                    disabled
-                    className="bg-gray-100"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-carmel-brown mb-1">Cidade - UF</label>
-                  <Input
-                    value={formData.city ? `${formData.city} - ${formData.state}` : ''}
-                    disabled
-                    className="bg-gray-100"
-                  />
+                  <div className="grid grid-cols-3 gap-1">
+                    <Input
+                      placeholder="Cidade"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="col-span-2"
+                    />
+                    <Input
+                      placeholder="UF"
+                      maxLength={2}
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value.toUpperCase() })}
+                    />
+                  </div>
                 </div>
               </div>
 

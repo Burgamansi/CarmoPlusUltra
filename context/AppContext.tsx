@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Member, Meeting, Song, PrayerRequest, DailyLiturgy, MediaItem, Feedback } from '../types';
 import * as FirestoreService from '../services/firestoreService';
 import { getMembersLS } from '../services/storage';
+import { INITIAL_MEMBERS } from '../services/mockData';
 
 interface AppContextType {
   members: Member[];
@@ -88,7 +89,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const fetchedLiturgy = results[4].status === 'fulfilled' ? results[4].value : null;
         const fetchedMedia = results[5].status === 'fulfilled' ? results[5].value : [];
 
-        setMembers(fetchedMembers);
+        // Use mock data if no members fetched from Firestore
+        const finalMembers = fetchedMembers.length > 0 ? fetchedMembers : INITIAL_MEMBERS;
+
+        setMembers(finalMembers);
         setMeetings(fetchedMeetings);
         setSongs(fetchedSongs);
         setPrayers(fetchedPrayers);
