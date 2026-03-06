@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { salvarDados } from '../services/firestoreService';
@@ -16,6 +16,46 @@ export const Admin = () => {
      hostId: members[0]?.member_id || '',
      address: ''
   });
+
+  // Auto-fill address when host is selected
+  const handleHostChange = (hostId: string) => {
+    const selectedMember = members.find(m => m.member_id === hostId);
+    let address = '';
+    
+    if (selectedMember && selectedMember.address) {
+      // Construct full address: "Street, Neighborhood, City - State"
+      const parts = [
+        selectedMember.address,
+        selectedMember.neighborhood,
+        selectedMember.city && selectedMember.state ? `${selectedMember.city} - ${selectedMember.state}` : ''
+      ].filter(Boolean);
+      
+      address = parts.join(', ');
+    }
+    
+    setNewMeeting({
+      ...newMeeting, 
+      hostId, 
+      address
+    });
+  };
+
+  // Initialize address for default selected host
+  useEffect(() => {
+    if (members.length > 0 && newMeeting.hostId) {
+      const selectedMember = members.find(m => m.member_id === newMeeting.hostId);
+      if (selectedMember && selectedMember.address && !newMeeting.address) {
+        const parts = [
+          selectedMember.address,
+          selectedMember.neighborhood,
+          selectedMember.city && selectedMember.state ? `${selectedMember.city} - ${selectedMember.state}` : ''
+        ].filter(Boolean);
+        
+        const address = parts.join(', ');
+        setNewMeeting(prev => ({ ...prev, address }));
+      }
+    }
+  }, [members, newMeeting.hostId]);
 
   const handleSave = async () => {
     if (!newMeeting.date || !newMeeting.hostId) return;
@@ -82,7 +122,7 @@ export const Admin = () => {
                  <select 
                    className="w-full border border-carmel-gold/50 rounded-lg px-4 py-2"
                    value={newMeeting.hostId}
-                   onChange={e => setNewMeeting({...newMeeting, hostId: e.target.value})}
+                   onChange={e => handleHostChange(e.target.value)}
                  >
                     {members.map(m => (
                        <option key={m.member_id} value={m.member_id}>{m.husband_name} e {m.wife_name}</option>
