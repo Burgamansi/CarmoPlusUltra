@@ -16,6 +16,13 @@ export interface Member {
   notes: string;
 }
 
+export interface MeetingSong {
+  name: string;
+  youtube_link: string;
+  singer?: string;
+  order: number;
+}
+
 export interface Meeting {
   meeting_id: string;
   date: string; // ISO string
@@ -31,6 +38,7 @@ export interface Meeting {
   theme?: string;
   content?: string; // reflexão or description
   status?: string;
+  meeting_songs?: MeetingSong[];
 }
 export interface Song {
   song_id: string;
