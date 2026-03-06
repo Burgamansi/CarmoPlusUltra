@@ -26,8 +26,12 @@ export interface Meeting {
   notes: string;
   geo_lat?: number;
   geo_lng?: number;
-}
 
+  // additional fields for enhanced UI
+  theme?: string;
+  content?: string; // reflexão or description
+  status?: string;
+}
 export interface Song {
   song_id: string;
   title: string;

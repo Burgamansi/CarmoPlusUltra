@@ -2,6 +2,7 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { Meetings } from './pages/Meetings';
@@ -19,31 +20,37 @@ import { Admin } from './pages/Admin';
 import { MediaPage } from './pages/MediaPage';
 import { Login } from './pages/Login';
 
+console.log("[App] Mounting");
+
 const App: React.FC = () => {
+  console.log("[App] Rendering");
+  
   return (
-    <AppProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/meetings" element={<Meetings />} />
-            <Route path="/songs" element={<Songs />} />
-            <Route path="/playlist/:id" element={<Playlist />} />
-            <Route path="/media" element={<MediaPage />} />
-            <Route path="/members" element={<Members />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/map" element={<MapPage />} />
-            <Route path="/prayers" element={<Prayers />} />
-            <Route path="/liturgy" element={<Liturgy />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/devotional" element={<Devotional />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/login" element={<Login />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/meetings" element={<Meetings />} />
+              <Route path="/songs" element={<Songs />} />
+              <Route path="/playlist/:id" element={<Playlist />} />
+              <Route path="/media" element={<MediaPage />} />
+              <Route path="/members" element={<Members />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/map" element={<MapPage />} />
+              <Route path="/prayers" element={<Prayers />} />
+              <Route path="/liturgy" element={<Liturgy />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/devotional" element={<Devotional />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </AppProvider>
+    </ErrorBoundary>
   );
 };
 

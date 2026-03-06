@@ -35,6 +35,8 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  console.log("[AppProvider] Initializing");
+  
   const [members, setMembers] = useState<Member[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -58,6 +60,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log("[AppContext] Starting data fetch");
+      
       // Early load from LocalStorage for Member persistence check
       const localMembers = getMembersLS();
       if (localMembers && localMembers.length > 0) {
@@ -66,14 +70,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       try {
-        const [
-          fetchedMembers,
-          fetchedMeetings,
-          fetchedSongs,
-          fetchedPrayers,
-          fetchedLiturgy,
-          fetchedMedia
-        ] = await Promise.all([
+        const results = await Promise.allSettled([
           FirestoreService.getMembers(),
           FirestoreService.getMeetings(),
           FirestoreService.getSongs(),
@@ -82,14 +79,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           FirestoreService.getMedia()
         ]);
 
+        console.log("[AppContext] Data fetch results:", results.map(r => r.status));
+
+        const fetchedMembers = results[0].status === 'fulfilled' ? results[0].value : [];
+        const fetchedMeetings = results[1].status === 'fulfilled' ? results[1].value : [];
+        const fetchedSongs = results[2].status === 'fulfilled' ? results[2].value : [];
+        const fetchedPrayers = results[3].status === 'fulfilled' ? results[3].value : [];
+        const fetchedLiturgy = results[4].status === 'fulfilled' ? results[4].value : null;
+        const fetchedMedia = results[5].status === 'fulfilled' ? results[5].value : [];
+
         setMembers(fetchedMembers);
         setMeetings(fetchedMeetings);
         setSongs(fetchedSongs);
         setPrayers(fetchedPrayers);
         if (fetchedLiturgy) setLiturgy(fetchedLiturgy);
         setMedia(fetchedMedia);
+
+        results.forEach((result, idx) => {
+          if (result.status === 'rejected') {
+            console.warn("[AppContext] Failed to fetch data source", idx, result.reason);
+          }
+        });
       } catch (error) {
-        console.error("Erro ao carregar dados do Firestore:", error);
+        console.error("[AppContext] Unexpected error during data fetch:", error);
       }
     };
 
@@ -158,7 +170,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   return (
     <AppContext.Provider value={{
       members, meetings, songs, prayers, liturgy, media, feedbacks,
-      addPrayer, likePrayer, addMeeting, updateMeeting, addMember, addSong, addFeedback, addMedia, updateLiturgy,
+      addPrayer, likePrayer, addMeeting, updateMeeting, addMember, updateMember, deleteMember, addSong, addFeedback, addMedia, updateLiturgy,
       getMeetingById, getMemberById, getSongById
     }}>
       {children}

@@ -11,7 +11,21 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-export const app = initializeApp(firebaseConfig);
+console.log("[Firebase] Initializing with config:", { projectId: firebaseConfig.projectId });
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+let app: any = null;
+let db: any = null;
+let auth: any = null;
+let firebaseError: string | null = null;
+
+try {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  auth = getAuth(app);
+  console.log("[Firebase] ✅ Initialized successfully");
+} catch (error: any) {
+  firebaseError = error?.message || "Unknown Firebase error";
+  console.error("[Firebase] ❌ Initialization failed:", firebaseError);
+}
+
+export { app, db, auth, firebaseError };
